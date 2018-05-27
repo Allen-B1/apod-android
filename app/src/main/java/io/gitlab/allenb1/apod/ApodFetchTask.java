@@ -1,15 +1,16 @@
 package io.gitlab.allenb1.apod;
 
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 
 import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.Date;
 
-public class ApodFetchTask extends AsyncTask<Date, Void, ApodEntry> {
+public class ApodFetchTask extends AsyncTask<Date, Void, Object> {
     static interface Callback {
-        void onError();
+        void onError(@Nullable Exception e);
         void onResult(ApodEntry entry);
         String getApiKey();
     }
@@ -22,24 +23,25 @@ public class ApodFetchTask extends AsyncTask<Date, Void, ApodEntry> {
 
     @Override protected void onPreExecute() {}
 
-    @Override protected ApodEntry doInBackground(Date... params) {
+    @Override protected Object doInBackground(Date... params) {
+        Date date = null;
         if(params != null && params.length > 0) {
-            Date date = params[0];
-            try {
-                return ApodEntry.fetch(mCallback.getApiKey(), date);
-            } catch(JSONException | IOException e) {
-                return null;
-            }
-        } else {
-            return null;
+            date = params[0];
+        }
+        try {
+            return ApodEntry.fetch(mCallback.getApiKey(), date);
+        } catch(JSONException | IOException e) {
+            return e;
         }
     }
 
-    @Override protected void onPostExecute(ApodEntry result) {
-        if(result != null) {
-            mCallback.onResult(result);
+    @Override protected void onPostExecute(Object result) {
+        if(result instanceof ApodEntry) {
+            mCallback.onResult((ApodEntry)result);
+        } else if(result instanceof Exception) {
+            mCallback.onError((Exception)result);
         } else {
-            mCallback.onError();
+            mCallback.onError(null);
         }
     }
 }
