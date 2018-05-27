@@ -9,10 +9,11 @@ import java.io.IOException;
 import java.util.Date;
 
 public class ApodFetchTask extends AsyncTask<Date, Void, Object> {
+    private final static String API_KEY = "DEMO_KEY"; // change this to api key, otherwise DEMO_KEY will be used
+
     static interface Callback {
         void onError(@Nullable Exception e);
         void onResult(ApodEntry entry);
-        String getApiKey();
     }
 
     private Callback mCallback;
@@ -29,7 +30,7 @@ public class ApodFetchTask extends AsyncTask<Date, Void, Object> {
             date = params[0];
         }
         try {
-            return ApodEntry.fetch(mCallback.getApiKey(), date);
+            return ApodEntry.fetch(API_KEY, date);
         } catch(JSONException | IOException e) {
             return e;
         }

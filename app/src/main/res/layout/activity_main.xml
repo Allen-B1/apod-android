@@ -6,11 +6,10 @@
     android:layout_height="match_parent"
     tools:context="io.gitlab.allenb1.apod.MainActivity">
 
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="match_parent"
+    <fragment
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="Loading..." />
+        android:layout_width="match_parent"
+        android:id="@+id/fragment"
+        android:name="io.gitlab.allenb1.apod.ViewFragment" />
 
 </LinearLayout>
