@@ -1,3 +1,6 @@
+package io.gitlab.allenb1.apod;
+
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -48,7 +51,7 @@ public class ApodEntry {
             mediaType = TYPE_VIDEO;
     }
 
-    public static ApodEntry fetch(@Nullable String apiKey, @Nullable Date date) throws IOException {
+    public static ApodEntry fetch(@Nullable String apiKey, @Nullable Date date) throws IOException, JSONException {
         if (apiKey == null)
             apiKey = "DEMO_KEY";
 
@@ -91,7 +94,7 @@ public class ApodEntry {
             String response = out.toString();
             return new ApodEntry(new JSONObject(response));
         } catch (MalformedURLException | JSONException e) {
-            throw new RuntimeException(e);
+            throw e;
         } catch (IOException e) {
             throw e;
         } finally {
