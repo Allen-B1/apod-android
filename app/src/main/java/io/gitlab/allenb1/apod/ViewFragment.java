@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -70,9 +71,11 @@ public class ViewFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        final TextView textView = view.findViewById(R.id.title);
-                        textView.setTextColor(R.attr.colorError);
-                        textView.setText(R.string.error);
+                        final View errorView = view.findViewById(R.id.error);
+                        errorView.setVisibility(View.VISIBLE);
+
+                        final View contentView = view.findViewById(R.id.content);
+                        contentView.setVisibility(View.GONE);
                     }
                 });
             }
@@ -96,6 +99,12 @@ public class ViewFragment extends Fragment {
                             final WebView webView = view.findViewById(R.id.video);
                             webView.setVisibility(View.VISIBLE);
                             webView.getSettings().setJavaScriptEnabled(true);
+                            webView.setWebViewClient(new WebViewClient() {
+                                @Override public void onPageFinished(WebView webView, String url) {
+                                    super.onPageFinished(webView, url);
+                                    webView.getParent().requestLayout();
+                                }
+                            });
                             webView.loadUrl(entry.getUrl());
                         }
                     }
