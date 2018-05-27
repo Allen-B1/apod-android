@@ -3,20 +3,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="@dimen/margin"
     tools:context="io.gitlab.allenb1.apod.ViewFragment">
 
+
+    <WebView
+        android:id="@+id/video"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:minHeight="316dp"
+        android:layout_height="wrap_content" />
+
+    <ImageView
+        android:id="@+id/image"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <TextView
-        tools:text="Title"
-        android:textAppearance="?android:textAppearanceLarge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin"
+        android:layout_marginStart="@dimen/margin"
+        android:layout_marginEnd="@dimen/margin"
+
+        tools:text="Title"
+        android:textAppearance="?android:textAppearanceLarge"
         android:id="@+id/title" />
 
     <TextView
-        tools:text="Explanation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin"
+        android:layout_marginEnd="@dimen/margin"
+
+        tools:text="Explanation"
         android:id="@+id/explanation" />
 
 </LinearLayout>
