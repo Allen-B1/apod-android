@@ -145,7 +145,8 @@ public class ApodEntry {
     @Nullable
     public static Date urlToDate(Uri uri) throws IllegalStateException, ParseException {
         String path = uri.getPath();
-        if(path.endsWith("astropix.html")) return null;
+        if(path.endsWith("astropix.html"))
+            return new Date();
 
         Matcher matcher = Pattern.compile("\\d+").matcher(path);
         if(matcher.find())
