@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Date;
 
 public class ApodFetchTask extends AsyncTask<Date, Void, Object> {
-    private final static String API_KEY = "3H1YW7OyWq4JW19GU4EWnF4gEmGiqSc2xg10GgYr"; // change this to api key, otherwise DEMO_KEY will be used
+    private final static String API_KEY = "DEMO_KEY"; // change this to api key, otherwise DEMO_KEY will be used
 
     static interface Callback {
         void onError(@Nullable Integer responseCode);
