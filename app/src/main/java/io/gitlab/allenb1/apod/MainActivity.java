@@ -31,6 +31,7 @@ public class MainActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         getListView().setDivider(null);
         setListAdapter(new DateAdapter(this));
+        getActionBar().setTitle(R.string.archive);
     }
 
     @Override public boolean onCreateOptionsMenu(Menu menu) {
