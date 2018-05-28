@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +23,8 @@ public class ViewFragment extends Fragment {
     private static final String ARG_DATE = "DATE";
 
     // TODO: Rename and change types of parameters
-    private Date mDate;
+    @NonNull private Date mDate = new Date();
+    private ApodEntry mEntry = null;
 
     public static ViewFragment newInstance(Date date) {
         ViewFragment fragment = new ViewFragment();
@@ -31,86 +34,116 @@ public class ViewFragment extends Fragment {
         return fragment;
     }
 
+    public static ViewFragment newInstance() {
+        return new ViewFragment();
+    }
+
 
     public ViewFragment() {}
 
+    /* Returns date */
     public Date getDate() {
         return mDate;
     }
 
+    /* Sets date */
     public void setDate(Date date) {
-        mDate = date;
-        if(getView() != null)
-            updateLayout(getView());
+        mDate.setTime(date.getTime());
+    }
+
+    /* Refetches entry & displays it if possible */
+    public void update() {
+        refetch(new Runnable() {
+            @Override
+            public void run() {
+                if (getView() != null)
+                    showData(getView(), mEntry);
+            }
+        }, new Runnable() {
+            @Override
+            public void run() {
+                if(getView() != null)
+                    showError(getView());
+            }
+        });
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if(getArguments() != null && getArguments().containsKey(ARG_DATE)) {
-            mDate = new Date(getArguments().getLong(ARG_DATE));
-        } else {
-            mDate = new Date();
+            mDate.setTime(getArguments().getLong(ARG_DATE));
         }
     }
 
+    /* Creates view. If entry is loaded, shows entry */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_view, container, false);
-        updateLayout(view);
+        View view = inflater.inflate(R.layout.fragment_view, container, false);
+        if(mEntry != null)
+            showData(view, mEntry);
         return view;
     }
 
-    protected void updateLayout(final View view) {
+    /* Shows entry to given view */
+    private void showData(final View view, final ApodEntry entry) {
+        final View errorView = view.findViewById(R.id.error);
+        errorView.setVisibility(View.GONE);
+
+        final View contentView = view.findViewById(R.id.content);
+        contentView.setVisibility(View.VISIBLE);
+
+        final TextView textView = view.findViewById(R.id.title);
+        textView.setText(entry.getTitle());
+
+        final TextView explanationView  =view.findViewById(R.id.explanation);
+        explanationView.setText(entry.getExplanation());
+
+        if(entry.getMediaType() == ApodEntry.TYPE_IMAGE) {
+            final ImageView imageView = view.findViewById(R.id.image);
+            imageView.setVisibility(View.VISIBLE);
+            new DownloadImageTask(imageView).execute(entry.getUrl());
+        } else {
+            final WebView webView = view.findViewById(R.id.video);
+            webView.setVisibility(View.VISIBLE);
+            webView.getSettings().setJavaScriptEnabled(true);
+            webView.setWebViewClient(new WebViewClient() {
+                @Override public void onPageFinished(WebView webView, String url) {
+                    super.onPageFinished(webView, url);
+                    webView.getParent().requestLayout();
+                }
+            });
+            webView.loadUrl(entry.getUrl());
+        }
+    }
+
+    /* Shows error */
+    private void showError(View view) {
+        final View errorView = view.findViewById(R.id.error);
+        errorView.setVisibility(View.VISIBLE);
+
+        final View contentView = view.findViewById(R.id.content);
+        contentView.setVisibility(View.GONE);
+    }
+
+    /* Reloads entry. */
+    private void refetch(@Nullable final Runnable onLoad,
+                         @Nullable final Runnable onError) {
         new ApodFetchTask(new ApodFetchTask.Callback() {
             @Override
             public void onError(Exception e) {
                 if(e != null)
                     e.printStackTrace();
-                if(getActivity() != null)
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            final View errorView = view.findViewById(R.id.error);
-                            errorView.setVisibility(View.VISIBLE);
-
-                            final View contentView = view.findViewById(R.id.content);
-                            contentView.setVisibility(View.GONE);
-                        }
-                    });
+                if(getActivity() != null && onError != null)
+                    getActivity().runOnUiThread(onError);
             }
 
             @Override
             public void onResult(final ApodEntry entry) {
-                if(getActivity() != null)
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            final TextView textView = view.findViewById(R.id.title);
-                            textView.setText(entry.getTitle());
-
-                            final TextView explanationView  =view.findViewById(R.id.explanation);
-                            explanationView.setText(entry.getExplanation());
-
-                            if(entry.getMediaType() == ApodEntry.TYPE_IMAGE) {
-                                final ImageView imageView = view.findViewById(R.id.image);
-                                imageView.setVisibility(View.VISIBLE);
-                                new DownloadImageTask(imageView).execute(entry.getUrl());
-                            } else {
-                                final WebView webView = view.findViewById(R.id.video);
-                                webView.setVisibility(View.VISIBLE);
-                                webView.getSettings().setJavaScriptEnabled(true);
-                                webView.setWebViewClient(new WebViewClient() {
-                                    @Override public void onPageFinished(WebView webView, String url) {
-                                        super.onPageFinished(webView, url);
-                                        webView.getParent().requestLayout();
-                                    }
-                                });
-                                webView.loadUrl(entry.getUrl());
-                            }
-                        }
-                    });
+                mEntry = entry;
+                if(getActivity() != null && onLoad != null)
+                    getActivity().runOnUiThread(onLoad);
             }
         }).execute(mDate);
     }

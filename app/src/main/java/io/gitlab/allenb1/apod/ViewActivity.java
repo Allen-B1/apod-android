@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.PluralsRes;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,6 +21,7 @@ public class ViewActivity extends Activity {
     public final static String EXTRA_DATE = "io.gitlab.allenb1.apod.EXTRA_DATE";
 
     private Date mDate = new Date();
+    private ViewFragment mFragment = ViewFragment.newInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,35 +30,46 @@ public class ViewActivity extends Activity {
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        if(getIntent() != null && getIntent().hasExtra(EXTRA_DATE)) {
-            long date = getIntent().getLongExtra(EXTRA_DATE, -1);
-            if(date >= 0) {
-                mDate.setTime(date);
-            }
-        }
-
         actionBar.setTitle(DateFormat.getDateInstance().format(mDate));
 
-        if(getIntent() != null && getIntent().getData() != null) {
-            try {
-                Date date = ApodEntry.urlToDate(getIntent().getData());
-                if(date != null)
-                    mDate.setTime(date.getTime());
-            } catch(ParseException e) {
-                Toast.makeText(this, R.string.error_generic, Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        }
-
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.add(android.R.id.content, ViewFragment.newInstance(mDate));
+        transaction.add(android.R.id.content, mFragment);
         transaction.commit();
+        update();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(Menu.NONE, R.id.share, Menu.NONE, R.string.share).setIcon(R.drawable.ic_share).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        update();
+    }
+
+    private void update() {
+        if(getIntent() != null) {
+            if(getIntent().hasExtra(EXTRA_DATE)) {
+                long date = getIntent().getLongExtra(EXTRA_DATE, -1);
+                if(date >= 0) {
+                    mFragment.setDate(new Date(date));
+                }
+            }
+            else if(getIntent().getData() != null)
+                try {
+                    Date date = ApodEntry.urlToDate(getIntent().getData());
+                    if(date != null)
+                        mFragment.setDate(date);
+                } catch(ParseException e) {
+                    Toast.makeText(this, R.string.error_generic, Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+        }
+        mFragment.update();
     }
 
     @Override
