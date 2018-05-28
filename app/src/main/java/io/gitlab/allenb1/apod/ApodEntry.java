@@ -133,4 +133,8 @@ public class ApodEntry {
     public String toString() {
         return new SimpleDateFormat("yyyy-MM-dd").format(this.date) + ": " + this.title;
     }
+
+    public static String dateToUrl(Date date) {
+        return new StringBuilder("https://apod.nasa.gov/apod/ap").append(new SimpleDateFormat("yyMMdd").format(date)).append(".html").toString();
+    }
 }

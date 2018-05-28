@@ -2,6 +2,8 @@ package io.gitlab.allenb1.apod;
 
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
@@ -38,7 +40,7 @@ public class ViewActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // todo: add share
+        menu.add(Menu.NONE, R.id.share, Menu.NONE, R.string.share).setIcon(R.drawable.ic_share).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -47,6 +49,15 @@ public class ViewActivity extends Activity {
         switch(item.getItemId()) {
             case android.R.id.home:
                 finish();
+                return true;
+            case R.id.share:
+                Intent intent = new Intent(Intent.ACTION_SEND)
+                        .setType("text/plain")
+                        .putExtra(Intent.EXTRA_TEXT, ApodEntry.dateToUrl(mDate));
+                Intent chooser = Intent.createChooser(intent, getString(R.string.share_title));
+                if(chooser.resolveActivity(getPackageManager()) != null) {
+                    startActivity(chooser);
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

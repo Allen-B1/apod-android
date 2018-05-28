@@ -68,47 +68,49 @@ public class ViewFragment extends Fragment {
             public void onError(Exception e) {
                 if(e != null)
                     e.printStackTrace();
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        final View errorView = view.findViewById(R.id.error);
-                        errorView.setVisibility(View.VISIBLE);
+                if(getActivity() != null)
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            final View errorView = view.findViewById(R.id.error);
+                            errorView.setVisibility(View.VISIBLE);
 
-                        final View contentView = view.findViewById(R.id.content);
-                        contentView.setVisibility(View.GONE);
-                    }
-                });
+                            final View contentView = view.findViewById(R.id.content);
+                            contentView.setVisibility(View.GONE);
+                        }
+                    });
             }
 
             @Override
             public void onResult(final ApodEntry entry) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        final TextView textView = view.findViewById(R.id.title);
-                        textView.setText(entry.getTitle());
+                if(getActivity() != null)
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            final TextView textView = view.findViewById(R.id.title);
+                            textView.setText(entry.getTitle());
 
-                        final TextView explanationView  =view.findViewById(R.id.explanation);
-                        explanationView.setText(entry.getExplanation());
+                            final TextView explanationView  =view.findViewById(R.id.explanation);
+                            explanationView.setText(entry.getExplanation());
 
-                        if(entry.getMediaType() == ApodEntry.TYPE_IMAGE) {
-                            final ImageView imageView = view.findViewById(R.id.image);
-                            imageView.setVisibility(View.VISIBLE);
-                            new DownloadImageTask(imageView).execute(entry.getUrl());
-                        } else {
-                            final WebView webView = view.findViewById(R.id.video);
-                            webView.setVisibility(View.VISIBLE);
-                            webView.getSettings().setJavaScriptEnabled(true);
-                            webView.setWebViewClient(new WebViewClient() {
-                                @Override public void onPageFinished(WebView webView, String url) {
-                                    super.onPageFinished(webView, url);
-                                    webView.getParent().requestLayout();
-                                }
-                            });
-                            webView.loadUrl(entry.getUrl());
+                            if(entry.getMediaType() == ApodEntry.TYPE_IMAGE) {
+                                final ImageView imageView = view.findViewById(R.id.image);
+                                imageView.setVisibility(View.VISIBLE);
+                                new DownloadImageTask(imageView).execute(entry.getUrl());
+                            } else {
+                                final WebView webView = view.findViewById(R.id.video);
+                                webView.setVisibility(View.VISIBLE);
+                                webView.getSettings().setJavaScriptEnabled(true);
+                                webView.setWebViewClient(new WebViewClient() {
+                                    @Override public void onPageFinished(WebView webView, String url) {
+                                        super.onPageFinished(webView, url);
+                                        webView.getParent().requestLayout();
+                                    }
+                                });
+                                webView.loadUrl(entry.getUrl());
+                            }
                         }
-                    }
-                });
+                    });
             }
         }).execute(mDate);
     }
