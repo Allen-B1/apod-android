@@ -37,6 +37,7 @@ public class ApodEntry {
     private String explanation;
     private String url;
     private byte mediaType;
+    private String copyright;
 
     protected ApodEntry(JSONObject response) {
         if (response.has("date"))
@@ -48,6 +49,7 @@ public class ApodEntry {
         title = response.optString("title", null);
         url = response.optString("url", null);
         explanation = response.optString("explanation", null);
+        copyright = response.optString("copyright", null);
         String mediaTypeString = response.optString("media_type");
         if ("image".equals(mediaTypeString))
             mediaType = TYPE_IMAGE;
@@ -131,6 +133,10 @@ public class ApodEntry {
 
     public String getUrl() {
         return url;
+    }
+
+    @Nullable public String getCopyright() {
+        return copyright;
     }
 
     @Override

@@ -100,6 +100,14 @@ public class ViewFragment extends Fragment {
         final TextView explanationView  =view.findViewById(R.id.explanation);
         explanationView.setText(entry.getExplanation());
 
+        final TextView copyrightView = view.findViewById(R.id.copyright);
+        if(entry.getCopyright() != null) {
+            copyrightView.setText(entry.getCopyright());
+            copyrightView.setVisibility(View.VISIBLE);
+        } else {
+            copyrightView.setVisibility(View.GONE);
+        }
+
         if(entry.getMediaType() == ApodEntry.TYPE_IMAGE) {
             final ImageView imageView = view.findViewById(R.id.image);
             imageView.setVisibility(View.VISIBLE);
