@@ -12,15 +12,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- TODO: scrolling -->
-
             <WebView
                 tools:ignore="WebViewLayout"
                 android:id="@+id/video"
                 android:visibility="gone"
                 android:layout_width="match_parent"
-                android:minHeight="256dp"
-                android:layout_height="wrap_content" />
+                android:layout_height="256dp" />
 
             <ImageView
                 android:id="@+id/image"
