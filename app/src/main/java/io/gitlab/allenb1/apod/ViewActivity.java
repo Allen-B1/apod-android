@@ -51,6 +51,7 @@ public class ViewActivity extends Activity {
         update();
     }
 
+    /* Parses a new intent */
     private void update() {
         if(getIntent() != null) {
             if(getIntent().hasExtra(EXTRA_DATE)) {
@@ -59,12 +60,13 @@ public class ViewActivity extends Activity {
                     mFragment.setDate(new Date(date));
                 }
             }
+
             else if(getIntent().getData() != null)
                 try {
                     Date date = ApodEntry.urlToDate(getIntent().getData());
                     if(date != null)
                         mFragment.setDate(date);
-                } catch(ParseException e) {
+                } catch(ParseException | IllegalStateException e) {
                     Toast.makeText(this, R.string.error_generic, Toast.LENGTH_SHORT).show();
                     finish();
                 }
