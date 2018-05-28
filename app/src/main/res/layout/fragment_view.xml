@@ -45,6 +45,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/margin"
                 android:layout_marginEnd="@dimen/margin"
+                android:layout_marginBottom="@dimen/margin"
 
                 tools:text="Explanation"
                 android:id="@+id/explanation" />

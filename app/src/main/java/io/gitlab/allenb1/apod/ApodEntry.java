@@ -1,8 +1,10 @@
 package io.gitlab.allenb1.apod;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,6 +19,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -136,5 +139,11 @@ public class ApodEntry {
 
     public static String dateToUrl(Date date) {
         return new StringBuilder("https://apod.nasa.gov/apod/ap").append(new SimpleDateFormat("yyMMdd").format(date)).append(".html").toString();
+    }
+    public static Date urlToDate(Uri uri) throws ParseException {
+        String path = uri.getPath();
+        if(path.endsWith("astropix.html")) return null;
+        String string = Pattern.compile("\\d+").matcher(path).group();
+        return new SimpleDateFormat("yyMMdd").parse(string);
     }
 }

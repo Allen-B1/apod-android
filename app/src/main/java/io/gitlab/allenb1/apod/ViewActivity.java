@@ -6,10 +6,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.annotation.PluralsRes;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.Date;
 
 public class ViewActivity extends Activity {
@@ -32,6 +35,17 @@ public class ViewActivity extends Activity {
         }
 
         actionBar.setTitle(DateFormat.getDateInstance().format(mDate));
+
+        if(getIntent() != null && getIntent().getData() != null) {
+            try {
+                Date date = ApodEntry.urlToDate(getIntent().getData());
+                if(date != null)
+                    mDate.setTime(date.getTime());
+            } catch(ParseException e) {
+                Toast.makeText(this, R.string.error_generic, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
 
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.add(android.R.id.content, ViewFragment.newInstance(mDate));
