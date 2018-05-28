@@ -21,10 +21,11 @@ import java.util.Date;
 
 public class ViewFragment extends Fragment {
     private static final String ARG_DATE = "DATE";
+    private static final String ARG_ENTRY = "ENTRY";
 
     // TODO: Rename and change types of parameters
     @NonNull private Date mDate = new Date();
-    private ApodEntry mEntry = null;
+    @Nullable private ApodEntry mEntry = null;
 
     public static ViewFragment newInstance(Date date) {
         ViewFragment fragment = new ViewFragment();
@@ -53,32 +54,41 @@ public class ViewFragment extends Fragment {
 
     /* Refetches entry & displays it if possible */
     public void update() {
-        refetch(new Runnable() {
-            @Override
-            public void run() {
-                if (getView() != null)
-                    showData(getView(), mEntry);
-            }
-        }, new Runnable() {
-            @Override
-            public void run() {
-                if(getView() != null)
-                    showError(getView());
-            }
-        });
+        if(mEntry == null || mDate != mEntry.getDate())
+            refetch(new Runnable() {
+                @Override
+                public void run() {
+                    if (getView() != null)
+                        showData(getView(), mEntry);
+                }
+            }, new Runnable() {
+                @Override
+                public void run() {
+                    if(getView() != null)
+                        showError(getView());
+                }
+            });
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null && savedInstanceState.getParcelable(ARG_ENTRY) instanceof ApodEntry) {
+            mEntry = savedInstanceState.getParcelable(ARG_ENTRY);
+            mDate.setTime(mEntry.getDate().getTime());
+        }
+
         if(getArguments() != null && getArguments().containsKey(ARG_DATE)) {
             mDate.setTime(getArguments().getLong(ARG_DATE));
         }
     }
 
+    @Override public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(ARG_ENTRY, mEntry);
+    }
+
     /* Creates view. If entry is loaded, shows entry */
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_view, container, false);
         if(mEntry != null)
@@ -87,7 +97,7 @@ public class ViewFragment extends Fragment {
     }
 
     /* Shows entry to given view */
-    private void showData(final View view, final ApodEntry entry) {
+    private void showData(@NonNull final View view, final ApodEntry entry) {
         final View errorView = view.findViewById(R.id.error);
         errorView.setVisibility(View.GONE);
 
@@ -124,6 +134,8 @@ public class ViewFragment extends Fragment {
             });
             webView.loadUrl(entry.getUrl());
         }
+
+        view.invalidate();
     }
 
     /* Shows error */
@@ -140,9 +152,7 @@ public class ViewFragment extends Fragment {
                          @Nullable final Runnable onError) {
         new ApodFetchTask(new ApodFetchTask.Callback() {
             @Override
-            public void onError(Exception e) {
-                if(e != null)
-                    e.printStackTrace();
+            public void onError(Integer responseCode) {
                 if(getActivity() != null && onError != null)
                     getActivity().runOnUiThread(onError);
             }
@@ -179,5 +189,4 @@ public class ViewFragment extends Fragment {
             bmImage.setImageBitmap(result);
         }
     }
-
 }

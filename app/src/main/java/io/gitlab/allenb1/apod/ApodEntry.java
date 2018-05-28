@@ -2,6 +2,8 @@ package io.gitlab.allenb1.apod;
 
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
@@ -28,23 +30,38 @@ import javax.net.ssl.HttpsURLConnection;
  * Created by allen on 5/26/18.
  */
 
-public class ApodEntry {
+public class ApodEntry implements Parcelable {
     public final static byte TYPE_IMAGE = 0;
     public final static byte TYPE_VIDEO = 1;
 
-    private Date date = null;
+    private Date date = new Date();
     private String title;
     private String explanation;
     private String url;
     private byte mediaType;
     private String copyright;
 
+    public static class FetchError extends Exception {
+        private int mResponseCode;
+        public FetchError(int responseCode) {
+            mResponseCode = responseCode;
+        }
+
+        public int getResponseCode() {
+            return mResponseCode;
+        }
+
+        @Override public String getMessage() {
+            return Integer.toString(mResponseCode);
+        }
+    }
+
     protected ApodEntry(JSONObject response) {
         if (response.has("date"))
             try {
                 date = new SimpleDateFormat("yyyy-MM-dd").parse(response.optString("date"));
             } catch (ParseException e) {
-                date = null;
+                e.printStackTrace();
             }
         title = response.optString("title", null);
         url = response.optString("url", null);
@@ -57,7 +74,7 @@ public class ApodEntry {
             mediaType = TYPE_VIDEO;
     }
 
-    public static ApodEntry fetch(@Nullable String apiKey, @Nullable Date date) throws IOException, JSONException {
+    public static ApodEntry fetch(@Nullable String apiKey, @Nullable Date date) throws IOException, JSONException, FetchError {
         if (apiKey == null)
             apiKey = "DEMO_KEY";
 
@@ -85,7 +102,7 @@ public class ApodEntry {
             connection.connect();
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpsURLConnection.HTTP_OK) {
-                throw new IOException("HTTP error code: " + responseCode);
+                throw new FetchError(responseCode);
             }
             // Retrieve the response body as an InputStream.
             stream = connection.getInputStream();
@@ -139,17 +156,56 @@ public class ApodEntry {
         return copyright;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return new SimpleDateFormat("yyyy-MM-dd").format(this.date) + ": " + this.title;
     }
 
+    /* Parcelable */
+    @Override public void writeToParcel(Parcel dest, int flags) {
+        dest.writeStringArray(new String[]{
+                new SimpleDateFormat("yyMMdd").format(date),
+                title,
+                explanation,
+                url,
+                Byte.toString(mediaType),
+                copyright
+        });
+    }
+
+    public ApodEntry(Parcel in) {
+        String[] data = new String[6];
+        try {
+            date = new SimpleDateFormat("yyMMdd").parse(data[0]);
+        } catch(ParseException e) {
+            e.printStackTrace();
+        }
+        title = data[1];
+        explanation = data[2];
+        url = data[3];
+        mediaType = Byte.valueOf(data[4]);
+        copyright = data[5];
+    }
+
+    @Override public int describeContents(){
+        return 0;
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public ApodEntry createFromParcel(Parcel in) {
+            return new ApodEntry(in);
+        }
+
+        public ApodEntry[] newArray(int size) {
+            return new ApodEntry[size];
+        }
+    };
+
+    /* Static utility methods */
     public static String dateToUrl(Date date) {
         return new StringBuilder("https://apod.nasa.gov/apod/ap").append(new SimpleDateFormat("yyMMdd").format(date)).append(".html").toString();
     }
 
-    @Nullable
-    public static Date urlToDate(Uri uri) throws IllegalStateException, ParseException {
+    @Nullable public static Date urlToDate(Uri uri) throws IllegalStateException, ParseException {
         String path = uri.getPath();
         if(path.endsWith("astropix.html"))
             return new Date();
